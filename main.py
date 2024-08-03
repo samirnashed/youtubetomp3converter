@@ -10,6 +10,8 @@ import yt_dlp as youtube_dl
 import re
 import webbrowser
 
+# This code is owned by Samir Nashed
+
 # Specify the path to ffmpeg
 FFMPEG_PATH = "/usr/local/bin/ffmpeg"
 
