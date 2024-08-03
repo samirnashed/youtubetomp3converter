@@ -11,6 +11,7 @@ import re
 import webbrowser
 
 # This code is owned by Samir Nashed
+# 03.08.2024
 
 # Specify the path to ffmpeg
 FFMPEG_PATH = "/usr/local/bin/ffmpeg"
