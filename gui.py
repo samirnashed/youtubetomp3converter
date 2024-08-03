@@ -6,31 +6,22 @@ import requests
 from io import BytesIO
 import webbrowser
 import os
-from search_youtube import search_youtube, show_video_thumbnail_and_confirm
+import yt_dlp as youtube_dl
+from search_youtube import search_youtube
 from download_convert import download_and_convert
-import re
-root = tk.Tk()
 
-# Example text entry for a YouTube URL
-url_entry = tk.Entry(root, width=50)
-url_entry.pack(pady=10)
-
-# Button to trigger showing the video thumbnail and asking for confirmation
-confirm_button = tk.Button(root, text="Show Video and Confirm", command=lambda: show_video_thumbnail_and_confirm(url_entry.get(), root))
-confirm_button.pack(pady=10)
-
-root.mainloop()
-
-def search_and_download(search_entry, result_frame, status_label, progress_bar, root):
-    query = search_entry.get()
-    if query:
-        results = search_youtube(query)
-        if results:
-            show_results(results, result_frame, status_label, progress_bar, root)
-        else:
-            messagebox.showinfo("No results", "No results found for your query.")
+def handle_search_or_link(input_text, result_frame, status_label, progress_bar, root):
+    if "youtube.com" in input_text or "youtu.be" in input_text:
+        fetch_video_details(input_text, status_label, progress_bar, root)
     else:
-        messagebox.showinfo("Cancelled", "Search cancelled.")
+        search_and_download(input_text, result_frame, status_label, progress_bar, root)
+
+def search_and_download(query, result_frame, status_label, progress_bar, root):
+    results = search_youtube(query)
+    if results:
+        show_results(results, result_frame, status_label, progress_bar, root)
+    else:
+        messagebox.showinfo("No results", "No results found for your query.")
 
 def show_results(results, result_frame, status_label, progress_bar, root):
     for widget in result_frame.winfo_children():
@@ -73,3 +64,41 @@ def download(url, title, status_label, progress_bar, root):
         status_label.config(text=f"Downloaded and converted to MP3:\n{result}")
     else:
         messagebox.showerror("Error", f"Failed to download and convert:\n{result}")
+
+def fetch_video_details(url, status_label, progress_bar, root):
+    ydl_opts = {'quiet': True}
+    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+        info_dict = ydl.extract_info(url, download=False)
+        title = info_dict.get('title', 'Unknown Title')
+        thumbnail_url = info_dict.get('thumbnail')
+
+    confirm_download(url, title, thumbnail_url, status_label, progress_bar, root)
+
+def confirm_download(url, title, thumbnail_url, status_label, progress_bar, root):
+    def on_confirm():
+        download(url, title, status_label, progress_bar, root)
+        confirm_window.destroy()
+
+    confirm_window = tk.Toplevel(root)
+    confirm_window.title("Confirm Download")
+
+    thumbnail_data = requests.get(thumbnail_url).content
+    thumbnail_img = Image.open(BytesIO(thumbnail_data))
+    thumbnail_img = thumbnail_img.resize((200, 150), Image.LANCZOS)
+    thumbnail_img = ImageTk.PhotoImage(thumbnail_img)
+
+    thumbnail_label = tk.Label(confirm_window, image=thumbnail_img)
+    thumbnail_label.image = thumbnail_img
+    thumbnail_label.pack(pady=10)
+
+    title_label = ttk.Label(confirm_window, text=title, wraplength=300)
+    title_label.pack(pady=10)
+
+    button_frame = ttk.Frame(confirm_window)
+    button_frame.pack(pady=10)
+
+    confirm_button = ttk.Button(button_frame, text="Confirm", command=on_confirm)
+    confirm_button.pack(side=tk.LEFT, padx=5)
+
+    cancel_button = ttk.Button(button_frame, text="Cancel", command=confirm_window.destroy)
+    cancel_button.pack(side=tk.LEFT, padx=5)

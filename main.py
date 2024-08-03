@@ -1,7 +1,7 @@
 # main.py
 import tkinter as tk
 from tkinter import ttk
-from gui import search_and_download
+from gui import handle_search_or_link
 
 root = tk.Tk()
 root.title("YouTube to MP3 Converter")
@@ -15,13 +15,13 @@ style.configure("green.Horizontal.TProgressbar", foreground='green', background=
 search_frame = ttk.Frame(root)
 search_frame.pack(pady=10)
 
-search_label = ttk.Label(search_frame, text="Search:")
+search_label = ttk.Label(search_frame, text="Search or Paste Link:")
 search_label.grid(row=0, column=0)
 
-search_entry = ttk.Entry(search_frame, width=30)
+search_entry = ttk.Entry(search_frame, width=50)
 search_entry.grid(row=0, column=1)
 
-search_button = ttk.Button(search_frame, text="Search", command=lambda: search_and_download(search_entry, result_frame, status_label, progress_bar, root))
+search_button = ttk.Button(search_frame, text="Go", command=lambda: handle_search_or_link(search_entry.get(), result_frame, status_label, progress_bar, root))
 search_button.grid(row=0, column=2)
 
 # Create progress bar right under the search bar
